@@ -5,21 +5,23 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 public class QuizApp {
     JFrame frame;
     JPanel panel;
     JLabel questionLabel;
-    JButton[] optionButtons;
+    JRadioButton[] optionButtons;
     JButton nextButton;
+    ButtonGroup optionGroup;
     int currentQuestion = 0;
     int score = 0;
 
     List<Question> questions = new ArrayList<>();
-    List<User> users = new ArrayList<>();
+    HashMap<String, String> users = new HashMap<>();
     List<QuizResult> quizResults = new ArrayList<>();
-    User currentUser;
+    String currentUser;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -33,15 +35,15 @@ public class QuizApp {
                 new String[] { "London", "Berlin", "Madrid", "Paris" }, 3));
         questions.add(new Question("Which planet is known as the Red Planet?",
                 new String[] { "Mars", "Venus", "Jupiter", "Saturn" }, 0));
-        questions.add(new Question("What is 2^2-2?",
-                new String[] { "3", "4", "5", "6" }, 1));
+        questions.add(new Question("What is 2^3-2?",
+                new String[] { "3", "4", "5", "6" }, 3));
         questions.add(new Question("Which is the most popular sport in the world??",
                 new String[] { "Basketball", "Football", "Cricket", "Baseball" }, 1));
 
-        users.add(new User("user1", "pass1"));
-        users.add(new User("user2", "pass2"));
-        users.add(new User("user3", "pass3"));
-        users.add(new User("user4", "pass4"));
+        users.put("user1", "pass1");
+        users.put("user2", "pass2");
+        users.put("user3", "pass3");
+        users.put("user4", "pass4");
     }
 
     private void createAndShowGUI() {
@@ -49,14 +51,16 @@ public class QuizApp {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         panel = new JPanel();
-        panel.setLayout(new GridLayout(5, 1));
+        panel.setLayout(new FlowLayout());
 
         questionLabel = new JLabel();
         panel.add(questionLabel);
 
-        optionButtons = new JButton[4];
+        optionButtons = new JRadioButton[4];
+        optionGroup = new ButtonGroup();
         for (int i = 0; i < 4; i++) {
-            optionButtons[i] = new JButton();
+            optionButtons[i] = new JRadioButton();
+            optionGroup.add(optionButtons[i]);
             panel.add(optionButtons[i]);
             int finalI = i;
             optionButtons[i].addActionListener(new ActionListener() {
@@ -122,17 +126,15 @@ public class QuizApp {
         nextButton.setEnabled(false);
 
         if (currentUser != null) {
-            quizResults.add(new QuizResult(currentUser.getUsername(), score));
+            quizResults.add(new QuizResult(currentUser, score));
             displayRanking();
             saveQuizResults();
         }
     }
 
-    private User authenticateUser(String username, String password) {
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                return user;
-            }
+    private String authenticateUser(String username, String password) {
+        if (users.containsKey(username) && users.get(username).equals(password)) {
+            return username;
         }
         return null;
     }
@@ -187,24 +189,6 @@ public class QuizApp {
 
         public int getCorrectOption() {
             return correctOption;
-        }
-    }
-
-    private class User {
-        private String username;
-        private String password;
-
-        public User(String username, String password) {
-            this.username = username;
-            this.password = password;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public String getPassword() {
-            return password;
         }
     }
 
